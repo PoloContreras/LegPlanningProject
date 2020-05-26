@@ -6,6 +6,9 @@ This is a temporary script file.
 """
 
 import gym
+import cvxpy as cp
+import numpy as np
+import modern_robotics as mr
 
 from gym import envs
 
