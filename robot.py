@@ -15,51 +15,6 @@ from gym import envs
 import modern_robotics as mr
 
 env = gym.make('Ant-v3')
-env.reset()
-env.render()
-
-##MATLAB PORT BEGINS HERE
-m1 = 1  # masses
-m2 = 5
-l1 = 1  # link lengths
-l2 = 1
-
-N = 40  # steps
-T = 10  # time
-h = T / N  # discretization of time
-
-startpos = [0, -2.9]
-endpos = [3, 2.9]  # THESE WERE COLUMN VECTORS IN THE MATLAB CODE
-
-taumax = 1.1  # maximum torque
-alpha = 0.1
-betasucc = 1.1
-betafail = 0.5
-rhoinit = 90 * math.pi / 180
-lambdalambda = 2;
-Kmax = 40
-
-# Set the initial trajectory to linearly interpolate the two points
-ot = np.c_[startpos, [np.linspace(startpos[0], endpos[0], N), np.linspace(startpos[1], endpos[1], N)], endpos]
-otdot = np.zeros([2, N+2])
-otddot = np.zeros([2, N+2])
-
-for t in range(1, N + 1):
-	otdot[0, t] = (ot[0, t]-ot[0, t-1])/h
-	otdot[1, t] = (ot[1, t]-ot[1, t-1])/h
-	otddot[0, t] = (ot[0,t+1] - 2*ot[0, t]+ot[0, t-1])/(h*h)
-	otddot[1, t] = (ot[1, t+1]-2*ot[1, t]+ot[1, t-1])/(h*h)
-
-etas = np.zeros(Kmax)
-etahats = np.zeros(Kmax)
-Js = np.zeros(Kmax)
-phis = np.zeros(Kmax)
-rhos = np.zeros(Kmax)
-rhos[0] = rhoinit
-phihats = np.zeros(Kmax)
-pdec = np.zeros(Kmax)
-adec = np.zeros(Kmax)
-
 
 # Front legs at start
 #body_frames = env.data.ximat
@@ -93,7 +48,7 @@ T_hip_inv = np.linalg.inv(T_hip)
 T_ankle = T_hip_inv@np.r_[np.c_[R_ankle, body_pos[chosen_leg+1]], np.array([0, 0, 0, 1]).reshape(1,4)]
 
 # Create the list of body frame matrices
-MList = np.array([T_hip, T_ankle])
+Mlist = np.array([T_main, T_hip, T_ankle])
 
 # For cylindar off hip joint: Density is 5. Radius is 0.04. Length is 0.2*sqrt(2)
 # For cylindar off ankle joint: Density is 5. Radius is 0.04. Length is 0.4*sqrt(2)
@@ -112,19 +67,19 @@ r_ankle = 0.04
 h_ankle = 0.4*math.sqrt(2)
 m_ankle = rho_ankle*(3*r_ankle**2+h_ankle**2)/12
 
-I_xx_hip = m(3*r_hip**2+h_hip**2)/12
-I_yy_hip = m(3*r_hip**2+h_hip**2)/12
+I_xx_hip = m_hip*(3*r_hip**2+h_hip**2)/12
+I_yy_hip = m_hip*(3*r_hip**2+h_hip**2)/12
 I_zz_hip = m_hip*r_hip**2/2
 
-I_xx_ankle = m(3*r_ankle**2+h_ankle**2)/12
-I_yy_ankle = m(3*r_ankle**2+h_ankle**2)/12
+I_xx_ankle = m_ankle*(3*r_ankle**2+h_ankle**2)/12
+I_yy_ankle = m_ankle*(3*r_ankle**2+h_ankle**2)/12
 I_zz_ankle = m_ankle*r_ankle**2/2
 
 I_hip = np.diag([I_xx_hip, I_yy_hip, I_zz_hip, m_hip, m_hip, m_hip])
 I_ankle = np.diag([I_xx_ankle, I_yy_ankle, I_zz_ankle, m_ankle, m_ankle, m_ankle])
 
 # Construct the list of inertia matrices
-GList = np.array([I_hip, I_ankle])
+Glist = np.array([I_hip, I_ankle])
 
 hip_axis = 0
 ankle_axis = 0
@@ -144,14 +99,15 @@ elif choice == 3:
 	ankle_axis = Rnp.linalg.inv(R_main) @ _hip @ R_ankle @ np.array([1, 1, 0])
 
 # Below is necessary because we need q w.r.t. our fixed frame (the main body frame)
-q_hip = (T_main_inv @ np.c_[body_pos[chosen_leg], [1]])[:, 3]
-q_ankle = (T_main_inv @ np.c_[body_pos[chosen_leg+1], [1]])[:, 3]
+q_hip = (T_main_inv @ np.r_[body_pos[chosen_leg], [1]])[:3]
+q_ankle = (T_main_inv @ np.r_[body_pos[chosen_leg+1], [1]])[:3]
 
 # Construct the list of screw 6-vectors
-S_hip = np.c_[hip_axis, np.negative(np.cross(hip_axis, q_hip))]
-S_ankle = np.c_[ankle_axis, np.negative(np.cross(ankle_axis, q_ankle))]
+S_hip = np.r_[hip_axis, np.negative(np.cross(hip_axis, q_hip))]
+S_ankle = np.r_[ankle_axis, np.negative(np.cross(ankle_axis, q_ankle))]
 
-SList = np.array([S_hip, S_ankle])
+Slist = np.array([S_hip, S_ankle]).T
+
 '''
 T_main_inv = np.linalg.inv(T_main)
 hip_1 = (0,0,1)
@@ -179,7 +135,89 @@ Slist = np.array([[1, 0, 1,      0, 1,     0],
 
 mr.MassMatrix(thetalist, Mlist, Glist, Slist)
 '''
+"""Computes the Coriolis and centripetal terms in the inverse dynamics of
+an open chain robot
+:param thetalist: A list of joint variables,
+:param dthetalist: A list of joint rates,
+:param Mlist: List of link frames i relative to i-1 at the home position,
+:param Glist: Spatial inertia matrices Gi of the links,
+:param Slist: Screw axes Si of the joints in a space frame, in the format
+			  of a matrix with axes as the columns.
+:return: The vector c(thetalist,dthetalist) of Coriolis and centripetal
+		 terms for a given thetalist and dthetalist.
+This function calls InverseDynamics with g = 0, Ftip = 0, and
+ddthetalist = 0.
+Example Input (3 Link Robot):
+	thetalist = np.array([0.1, 0.1, 0.1])
+	dthetalist = np.array([0.1, 0.2, 0.3])
+	M01 = np.array([[1, 0, 0,        0],
+					[0, 1, 0,        0],
+					[0, 0, 1, 0.089159],
+					[0, 0, 0,        1]])
+	M12 = np.array([[ 0, 0, 1,    0.28],
+					[ 0, 1, 0, 0.13585],
+					[-1, 0, 0,       0],
+					[ 0, 0, 0,       1]])
+	M23 = np.array([[1, 0, 0,       0],
+					[0, 1, 0, -0.1197],
+					[0, 0, 1,   0.395],
+					[0, 0, 0,       1]])
+	M34 = np.array([[1, 0, 0,       0],
+					[0, 1, 0,       0],
+					[0, 0, 1, 0.14225],
+					[0, 0, 0,       1]])
+	G1 = np.diag([0.010267, 0.010267, 0.00666, 3.7, 3.7, 3.7])
+	G2 = np.diag([0.22689, 0.22689, 0.0151074, 8.393, 8.393, 8.393])
+	G3 = np.diag([0.0494433, 0.0494433, 0.004095, 2.275, 2.275, 2.275])
+	Glist = np.array([G1, G2, G3])
+	Mlist = np.array([M01, M12, M23, M34])
+	Slist = np.array([[1, 0, 1,      0, 1,     0],
+					  [0, 1, 0, -0.089, 0,     0],
+					  [0, 1, 0, -0.089, 0, 0.425]]).T
+Output:
+	np.array([0.26453118, -0.05505157, -0.00689132])
+"""
+m1 = 1  # masses
+m2 = 5
+l1 = 1  # link lengths
+l2 = 1
 
+N = 40  # steps
+T = 10  # time
+h = T / N  # discretization of time
+
+# Hard-coded for the testing phase (in radians).
+startpos = [0, 0]
+endpos = [0.2618, 0.5234]  # THESE WERE COLUMN VECTORS IN THE MATLAB CODE
+
+taumax = 1.1  # maximum torque
+alpha = 0.1
+betasucc = 1.1
+betafail = 0.5
+rhoinit = 90 * math.pi / 180
+lambdalambda = 2;
+Kmax = 40
+
+# Set the initial trajectory to linearly interpolate the two points
+ot = np.c_[startpos, [np.linspace(startpos[0], endpos[0], N), np.linspace(startpos[1], endpos[1], N)], endpos]
+otdot = np.zeros([2, N+2])
+otddot = np.zeros([2, N+2])
+
+for t in range(1, N + 1):
+	otdot[0, t] = (ot[0, t]-ot[0, t-1])/h
+	otdot[1, t] = (ot[1, t]-ot[1, t-1])/h
+	otddot[0, t] = (ot[0,t+1] - 2*ot[0, t]+ot[0, t-1])/(h*h)
+	otddot[1, t] = (ot[1, t+1]-2*ot[1, t]+ot[1, t-1])/(h*h)
+
+etas = np.zeros(Kmax)
+etahats = np.zeros(Kmax)
+Js = np.zeros(Kmax)
+phis = np.zeros(Kmax)
+rhos = np.zeros(Kmax)
+rhos[0] = rhoinit
+phihats = np.zeros(Kmax)
+pdec = np.zeros(Kmax)
+adec = np.zeros(Kmax)
 
 # Calculate the initial value of phi
 eta = np.zeros([2, N])
@@ -189,10 +227,15 @@ for t in range(1, N + 1):  # Dynamics equations.
 	t1dot = otdot[0, t]
 	t2dot = otdot[1, t]
 
-	M = np.array([[(m1+m2)*(l1**2), m2*l1*l2*(math.sin(t1)*math.sin(t2)+math.cos(t1)*math.cos(t2))], \
-				  [m2*l1*l2*(math.sin(t1)*math.sin(t2)+math.cos(t1)*math.cos(t2)), m2*(l2**2)]])
-	W = np.array([[0, m2*l1*l2*(math.sin(t1)*math.cos(t2)-math.cos(t1)*math.sin(t2))*t2dot],\
-				 [m2*l1*l2*(math.sin(t1)*math.cos(t2)-math.cos(t1)*math.sin(t2))*t1dot, 0]])
+	# Theta values begin at [0,0,0] which corresponds to the middle
+	# of the given angle range.
+	thetalist = np.array([t1, t2])
+	# Derivatives are approximations for now
+	dthetalist = np.array([t1dot, t2dot])
+
+	M = mr.MassMatrix(thetalist, Mlist, Glist, Slist)
+	W = mr.VelQuadraticForces(thetalist, dthetalist, Mlist, Glist, Slist)
+
 	eta[:, t - 1] = np.negative(sum([M@otddot[:, t], W@otdot[:, t]]))
 
 oldphi = 0 + lambdalambda * np.sum(np.abs(eta))
@@ -226,10 +269,12 @@ for i in range(0, Kmax):
 		t1dot = otdot[0, t]
 		t2dot = otdot[1, t]
 
-		M = np.array([[(m1+m2)*(l1**2), m2*l1*l2*(math.sin(t1)*math.sin(t2)+math.cos(t1)*math.cos(t2))], \
-					  [m2*l1*l2*(math.sin(t1)*math.sin(t2)+math.cos(t1)*math.cos(t2)), m2*(l2**2)]])
-		W = np.array([[0, m2*l1*l2*(math.sin(t1)*math.cos(t2)-math.cos(t1)*math.sin(t2))*t2dot], \
-					  [m2*l1*l2*(math.sin(t1)*math.cos(t2)-math.cos(t1)*math.sin(t2))*t1dot, 0]])
+		thetalist = np.array([t1, t2])
+		dthetalist = np.array([t1dot, t2dot])
+
+		M = mr.MassMatrix(thetalist, Mlist, Glist, Slist)
+		W = mr.VelQuadraticForces(thetalist, dthetalist, Mlist, Glist, Slist)
+
 		constr += [etahat[:, t-1] == tau[:, t]-M@ntddot[:, t]-W@ntdot[:, t]]
 
 	# Trust region constraints.
@@ -256,10 +301,11 @@ for i in range(0, Kmax):
 		t1dot = ntdot.value[0, t]
 		t2dot = ntdot.value[1, t]
 
-		M = np.array([[(m1+m2)*(l1**2), m2*l1*l2*(math.sin(t1)*math.sin(t2)+math.cos(t1)*math.cos(t2))], \
-					  [m2*l1*l2*(math.sin(t1)*math.sin(t2)+math.cos(t1)*math.cos(t2)), m2*(l2**2)]])
-		W = np.array([[0, m2*l1*l2*(math.sin(t1)*math.cos(t2)-math.cos(t1)*math.sin(t2))*t2dot],\
-					  [m2*l1*l2*(math.sin(t1)*math.cos(t2)-math.cos(t1)*math.sin(t2))*t1dot, 0]])
+		thetalist = np.array([t1, t2])
+		dthetalist = np.array([t1dot, t2dot])
+
+		M = mr.MassMatrix(thetalist, Mlist, Glist, Slist)
+		W = mr.VelQuadraticForces(thetalist, dthetalist, Mlist, Glist, Slist)
 
 		eta[:, t-1] = sum([tau.value[:, t], np.negative(sum([M@ntddot.value[:, t], W@ntdot.value[:, t]]))])
 
@@ -299,3 +345,37 @@ for i in range(0, Kmax):
 
 print(optval)
 print(tau.value) # print the final value
+
+env.reset()
+env.render()
+
+# Below is an educated guess on timings
+# timestep = 0.01 seconds per frame
+# total_frames = 5*(total_steps)
+# T = 10 seconds for when we're giving inputs
+# 5 frames per step
+# UNDER ASSUMPTION THAT EACH FRAME IS 0.01 SECONDS
+# 100 frames per second. 1000 frames per 10 seconds
+# 200 steps
+# N = 40 we will have 4 inputs per second (one every 25 frames)
+
+k=0
+theta = ot*(180/math.pi)
+print(theta)
+for i in range(2000):
+	env.render()
+	# Each specific angle should be held for five steps to correspond
+	# with the time-frame
+	prev = 0
+	if i>1000 and i < 1000+5*N-1:
+		paso = [0, 30,  theta[0, (i-1000)//5], 30+theta[1, (i-1000)//5],0, -30, 0, -30]
+		if int((i - 1000) // 5)>prev+0.5:
+			prev = int((i - 1000)//5)
+			print(paso)
+			k+=1
+			print(prev)
+			print(k)
+		env.step(paso)
+		continue
+	env.step([0, 30, 0, 30, 0, -30, 0, -30])
+env.close()
