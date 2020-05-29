@@ -45,7 +45,7 @@ R_hip = body_frames[chosen_leg].reshape(3, 3)
 T_hip = np.r_[np.c_[R_hip, body_pos[chosen_leg]], np.array([0, 0, 0, 1]).reshape(1,4)]
 R_ankle = body_frames[chosen_leg+1].reshape(3, 3)
 T_hip_inv = np.linalg.inv(T_hip)
-T_ankle = T_hip_inv@np.r_[np.c_[R_ankle, body_pos[chosen_leg+1]], np.array([0, 0, 0, 1]).reshape(1,4)]
+T_ankle = T_hip_inv@np.r_[np.c_[R_ankle, body_pos[chosen_leg+1]], np.array([0, 0, 0, 1]).reshape(1, 4)]
 
 # Create the list of body frame matrices
 Mlist = np.array([T_main, T_hip, T_ankle])
@@ -367,6 +367,8 @@ for i in range(2000):
 	# Each specific angle should be held for five steps to correspond
 	# with the time-frame
 	prev = 0
+	if i <=1000:
+		env.step([0, 30, 0, 30, 0, -30, 0, -30])
 	if i>1000 and i < 1000+5*N-1:
 		paso = [0, 30,  theta[0, (i-1000)//5], 30+theta[1, (i-1000)//5],0, -30, 0, -30]
 		if int((i - 1000) // 5)>prev+0.5:
@@ -377,5 +379,7 @@ for i in range(2000):
 			print(k)
 		env.step(paso)
 		continue
-	env.step([0, 30, 0, 30, 0, -30, 0, -30])
+	if i > 1000+5*N-1:
+		env.step([0, 30, theta[0, 40], 30+theta[1, 40], 0, -30, 0, -30])
+
 env.close()
