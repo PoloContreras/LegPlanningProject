@@ -9,6 +9,7 @@ import numpy as np
 import modern_robotics as mr
 import math
 import cvxpy as cp
+import matplotlib.pyplot as plt
 
 import gym
 from gym import envs
@@ -240,6 +241,8 @@ for t in range(1, N + 1):  # Dynamics equations.
 
 oldphi = 0 + lambdalambda * np.sum(np.abs(eta))
 
+i_count = 0
+
 for i in range(0, Kmax):
 	nt = cp.Variable((2, N+2))
 	ntdot = cp.Variable((2, N+2))
@@ -326,6 +329,7 @@ for i in range(0, Kmax):
 	if delta <= alpha*deltahat:
 		if i != Kmax-1:
 			rhos[i + 1] = betafail*rhos[i]
+			i_count += 1
 
 		# Undo recording of the last step.
 		if i != 0:
@@ -343,8 +347,8 @@ for i in range(0, Kmax):
 		ot = nt.value
 		otdot = ntdot.value
 
-print(optval)
-print(tau.value) # print the final value
+# print(optval)
+# print(tau.value) # print the final value
 
 env.reset()
 env.render()
@@ -361,25 +365,54 @@ env.render()
 
 k=0
 theta = ot*(180/math.pi)
-print(theta)
-for i in range(2000):
-	env.render()
-	# Each specific angle should be held for five steps to correspond
-	# with the time-frame
-	prev = 0
-	if i <=1000:
-		env.step([0, 30, 0, 30, 0, -30, 0, -30])
-	if i>1000 and i < 1000+5*N-1:
-		paso = [0, 30,  theta[0, (i-1000)//5], 30+theta[1, (i-1000)//5],0, -30, 0, -30]
-		if int((i - 1000) // 5)>prev+0.5:
-			prev = int((i - 1000)//5)
-			print(paso)
-			k+=1
-			print(prev)
-			print(k)
-		env.step(paso)
-		continue
-	if i > 1000+5*N-1:
-		env.step([0, 30, theta[0, 40], 30+theta[1, 40], 0, -30, 0, -30])
+# print(theta)
+# print(i_count)
+# body_frames = env.data.body_xmat
+# body_pos = env.data.body_xpos
+# print("body_frames = ", body_frames)
+# print("body_pos = ", body_pos)
+def computeBodyRotation():
+	xAxis = np.array([1,0])
+	# torso_pos = body_pos[1]
+	# hip1_pos = body_pos[3]
+	# hipVec = np.array([hip1_pos[0]-torso_pos[0],hip1_pos[1]-torso_pos[1]])
+	# hipVec /= np.linalg.norm(hipVec)
+	torsoVec = env.data.body_xmat[1].reshape(3, 3)[:2,0]
+	torsoVec /= np.linalg.norm(torsoVec)
+	rotation = np.arccos(np.dot(xAxis,torsoVec)) * 180/math.pi #both vectors normalized
+	print(torsoVec, rotation)
+	return rotation
+
+rotation = computeBodyRotation()
+
+GoalReached = False
+while(not GoalReached):
+	for i in range(2000):
+		env.render()
+		# Each specific angle should be held for five steps to correspond
+		# with the time-frame
+		prev = 0
+		if i <=1000:
+			env.step([0, 30, 0, 30, 0, -30, 0, -30])
+		if i>1000 and i < 1000+5*N-1:
+			paso = [0, 30,  theta[0, (i-1000)//5], 30+theta[1, (i-1000)//5],0, -30, 0, -30]
+			if int((i - 1000) // 5)>prev+0.5:
+				prev = int((i - 1000)//5)
+				# print(paso)
+				k+=1
+				# print(prev)
+				# print(k)
+			env.step(paso)
+			continue
+		if i > 1000+5*N-1:
+			env.step([0, 30, theta[0, 40], 30+theta[1, 40], 0, -30, 0, -30])
+	# Compute location
+	rotation = computeBodyRotation()
+
+	# print("body_frames = ", body_frames)
+	# print("body_pos = ", body_pos)
+
+	# Check if goal done
+	GoalReached = True
 
 env.close()
