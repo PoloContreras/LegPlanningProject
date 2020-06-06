@@ -67,7 +67,7 @@
         </body>
       </body>
     </body>
-    <body name="Goal" pos="30 0 0">
+    <body name="Goal" pos="30 8 0">
       <!-- <geom name="obstacle_geom" pos="5 5 0" size="4.0" type="sphere"/> rgba="0.15625 0.6367 0.207 1" -->
       <body name="Left_Post" pos="0 3 0">
         <geom fromto="0.0 0.0 0.0 0.0 0.0 2.0" name="left_post_geom" size="0.25" type="capsule"/>
@@ -79,22 +79,22 @@
         <geom fromto="0.0 -3.0 0.0 0. 3.0 0.0" name="cross_bar_geom" size="0.25" type="capsule"/>
       </body>
     </body>
-    <body name="Obstacle1" pos="5 -1 0">
+    <body name="Obstacle1" pos="5 2 0">
       <geom name="obstacle1_geom" pos="0 0 0" size="1.0" type="sphere" rgba="0.465 0.465 0.465 1"/>
     </body>
-    <body name="Obstacle2" pos="12 3 1">
+    <body name="Obstacle2" pos="12 6 1">
       <geom name="obstacle2_geom" pos="0 0 0" size="1.0" type="sphere" rgba="0.465 0.465 0.465 1"/>
     </body>
-    <body name="Obstacle3" pos="12 -2 1">
+    <body name="Obstacle3" pos="12 1 1">
       <geom name="obstacle3_geom" pos="0 0 0" size="1.0" type="sphere" rgba="0.465 0.465 0.465 1"/>
     </body>
-    <body name="Obstacle4" pos="20 0 0">
+    <body name="Obstacle4" pos="20 3 0">
       <geom name="obstacle4_geom" pos="0 0 0" size="2.75" type="sphere" rgba="0.465 0.465 0.465 1"/>
     </body>
-    <body name="Obstacle5" pos="26 3 0">
+    <body name="Obstacle5" pos="26 6 0">
       <geom name="obstacle5_geom" pos="0 0 0" size=".6" type="sphere" rgba="0.465 0.465 0.465 1"/>
     </body>
-    <body name="Obstacle6" pos="20 -6 0">
+    <body name="Obstacle6" pos="26 1 0">
       <geom name="obstacle6_geom" pos="0 0 0" size=".5" type="sphere" rgba="0.465 0.465 0.465 1"/>
     </body>
   </worldbody>

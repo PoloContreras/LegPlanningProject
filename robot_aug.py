@@ -19,6 +19,8 @@ import navigationPY_smooth as nav
 import legHardSelector_aug as legSelect
 import antWalk_aug as thiccAntyAppendages
 
+import copy
+
 env = gym.make('Ant-v3')
 
 body_frames = env.data.body_xmat
@@ -422,11 +424,12 @@ while(not GoalReached):
 		print('after mapping: ',paso_after_map)
 
 	print('Qpos before rowing legs: ',[math.degrees(angle) for angle in env.data.qpos[7:]])
+	#paso_patas = np.r_[paso[len(paso)-2:],paso[:len(paso)-2]]
 	for i in range(1500):
-		paso = thiccAntyAppendages.numericWalk(500,i,new_legs)
+		paso_patas = thiccAntyAppendages.numericWalk(500,i,new_legs,copy.deepcopy(paso))
 #                paso = [0, 30, theta[0, (i) // 5], 30 + theta[1, (i) // 5], 0, -30, 0, -30]
 		env.render()
-		env.step(paso)
+		env.step(paso_patas)
 
 
 
