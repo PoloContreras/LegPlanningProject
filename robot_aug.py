@@ -33,8 +33,12 @@ env.render()
 
 local_target = 0 #pointer indicates location of target specified by nav.path
 
-theta_resting = np.array([[0,0,0,0],[math.radians(30),math.radians(30),-1*math.radians(30),-1*math.radians(30)]])
+theta_resting = np.array([[0,0,0,0],[math.radians(30),math.radians(30),math.radians(30),math.radians(30)]])
 
+for i in range(200):
+	env.render()
+	env.step([0,30,0,30,0,-30,0,-30])
+	   
 # We can literally put all of the following code in one big while loop
 while(not GoalReached):
 	# Body frames with respect to the joint positions
@@ -45,10 +49,17 @@ while(not GoalReached):
 	body_dir = body_frames[1].reshape(3,3)[:2,0]
 	angle_proj = legSelect.positionToAngle(body_pos[1],body_dir,projPoint)
 	new_legs = legSelect.numericSteps(angle_proj)
-
+	#new_legs = [(3,[legSelect.extremeHip[1],legSelect.neutralAnkle]),(3,[legSelect.extremeHip[1],legSelect.neutralAnkle])]
+	
+	print(env.data.qpos[7:])
+	print('NewLegs ',new_legs)
+	
 	for new_leg in new_legs:
+		choice_mapped = [3,0,1,2]
 		theta_start = theta_resting[:,new_leg[0]] # Obtain the staring angles from the resting array
 		theta_end = np.array(new_leg[1])
+		print('Theta start:',theta_start)
+		print('theta end:',theta_end)
 
 		# Front legs at start
 		#body_frames = env.data.ximat
@@ -71,7 +82,7 @@ while(not GoalReached):
 
 		# map_to_leg maps the chosen leg (0-3) to the corresponding position in body frames list
 		map_to_leg = [3, 6, 9, 12]
-		choice = new_leg[0]
+		choice = choice_mapped[new_leg[0]]
 		chosen_leg = map_to_leg[choice]
 		R_hip = body_frames[chosen_leg].reshape(3, 3)
 		T_hip = np.r_[np.c_[R_hip, body_pos[chosen_leg]], np.array([0, 0, 0, 1]).reshape(1,4)]
@@ -385,22 +396,36 @@ while(not GoalReached):
 		theta = ot * (180 / math.pi)
 
 		# Advance the simulation
+		paso=env.data.qpos[7:]
+#		print(type(paso))
+		paso = np.r_[paso[len(paso)-2:],paso[:len(paso)-2]]
+		paso = [math.degrees(angle) for angle in paso]
+#		print('Qpos before single leg movement: ',paso)
 		for i in range(200):
 			env.render()
-			#choiceMapped maps the selected limbs 1-4 (0-3) into the locations in the vector they will be written in: 4,3,2,1
-			choiceMapped = [1,2,3,0]
-			paso = [0, 30, 0, 30, 0, -30, 0, -30]
+			#choiceMapped maps the selected limbs 1-4 (0-3) into the locations in the vector they will be written in: 4,1,2,3
+			choiceMapped = [3,0,1,2]
+			#paso = [0, 30, 0, 30, 0, -30, 0, -30]
 			if choice == 0 or choice == 3:
-				paso[2*choiceMapped[choice]] += theta[0,i//5]
-				paso[2*choiceMapped[choice]+1] += theta[1,i//5]
+				paso[2*choiceMapped[choice]] = theta[0,i//5]
+				paso[2*choiceMapped[choice]+1] = theta[1,i//5]
 			elif choice == 1 or choice == 2:
-				paso[2*choiceMapped[choice]] -= theta[0,i//5]
-				paso[2*choiceMapped[choice]+1] -= theta[1,1//5]
+				paso[2*choiceMapped[choice]] = theta[0,i//5]
+				paso[2*choiceMapped[choice]+1] = -1*theta[1,1//5]
 			env.step(paso) #do we need this here?
+			if i ==10:
+				print('Qpos before single leg movement: ',paso)
+				paso_after_map = [[paso[2*index],paso[2*index+1]] for index in choiceMapped]
+				print('after mapping: ',paso_after_map)
+		print('Qpos after single leg movement: ',[math.degrees(angle) for angle in env.data.qpos[7:]])
+		paso_after_map = [[paso[2*index],paso[2*index+1]] for index in choiceMapped]
+		print('after mapping: ',paso_after_map)
 
+	print('Qpos before rowing legs: ',[math.degrees(angle) for angle in env.data.qpos[7:]])
 	for i in range(1500):
 		paso = thiccAntyAppendages.numericWalk(500,i,new_legs)
 #                paso = [0, 30, theta[0, (i) // 5], 30 + theta[1, (i) // 5], 0, -30, 0, -30]
+		env.render()
 		env.step(paso)
 
 
