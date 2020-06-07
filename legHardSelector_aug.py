@@ -56,7 +56,7 @@ def positionToAngle(body_pos, body_dir, point):
 
 extremeHip = [math.radians(-30),math.radians(30)] #min/max angle achievable by hip joints
 extremeAnkle = [math.radians(30),math.radians(70)] #min/max angle achievable by ankle joints
-neutralAnkle = math.radians(40) #angle of ankle joint in neutral position
+neutralAnkle = math.radians(30) #angle of ankle joint in neutral position
 
 #base1 = 45
 #base2 = 135
@@ -96,13 +96,13 @@ neutralAnkle = math.radians(40) #angle of ankle joint in neutral position
 
 def numericSteps(targetRad):
     if targetRad >= 0 and targetRad < math.pi/2: #closest to leg 1
-        return [(1,[extremeHip[0],neutralAnkle]),(3,[extremeHip[1],neutralAnkle])] #format: (choice,endpos) with endpos in degrees
+        return [(1,(extremeHip[0],neutralAnkle)),(3,(extremeHip[1],neutralAnkle))] #format: (choice,endpos) with endpos in degrees
     elif targetRad  >= math.pi/2 and targetRad < math.pi: #closest to leg 2
-        return [(0,[extremeHip[1],neutralAnkle]),(2,[extremeHip[0],neutralAnkle])]
+        return [(0,(extremeHip[1],neutralAnkle)),(2,(extremeHip[0],neutralAnkle))]
     elif targetRad >= math.pi and targetRad < 3*math.pi/2: #closest to leg 3
-        return [(1,[extremeHip[1],neutralAnkle]),(3,[extremeHip[0],neutralAnkle])]
+        return [(1,(extremeHip[1],neutralAnkle)),(3,(extremeHip[0],neutralAnkle))]
     else: #closest to leg 4 
-        return [(0,[extremeHip[0],neutralAnkle]),(2,[extremeHip[1],neutralAnkle])]
+        return [(0,(extremeHip[0],neutralAnkle)),(2,(extremeHip[1],neutralAnkle))]
     
 #print(numericSteps(targetAngle)) #debug
     
