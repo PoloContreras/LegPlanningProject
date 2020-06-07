@@ -22,6 +22,7 @@ point=np.array([2,-1,0])
 # point and circle_pos should be a 3-dimensional vector
 # projected point will be 2-dimensional
 def circularProjection(circle_pos, circle_radius, point):
+   #print('circle pos: ',circle_pos)
    rel_point = (point-circle_pos)[:2] # Only take the first two elements
    proj_point = rel_point / np.linalg.norm(rel_point)
    proj_point = circle_radius * proj_point # scale point
@@ -36,12 +37,12 @@ def positionToAngle(body_pos, body_dir, point):
    rel_point = point-body_pos[:2]
    norm_rel_point = rel_point / np.linalg.norm(rel_point)
    norm_dir = body_dir / np.linalg.norm(body_dir)
-   print(norm_rel_point)
+   print('unit vector',norm_rel_point)
    # a cross b is positive if the angle is counter-clockwise
    sin_angle = norm_dir[0]*norm_rel_point[1]-norm_dir[1]*norm_rel_point[0]
    cos_angle = np.dot(norm_dir, norm_rel_point)
    angle = np.arccos(cos_angle) # Obtain the angle from dot product
-   print(angle)
+   print('angle: ',math.degrees(angle),' degrees')
    if sin_angle >= 0:
       return angle
    elif sin_angle < 0:
@@ -96,13 +97,13 @@ neutralAnkle = math.radians(30) #angle of ankle joint in neutral position
 
 def numericSteps(targetRad):
     if targetRad >= 0 and targetRad < math.pi/2: #closest to leg 1
-        return [(1,(extremeHip[0],neutralAnkle)),(3,(extremeHip[1],neutralAnkle))] #format: (choice,endpos) with endpos in degrees
+        return [(0,(extremeHip[0],neutralAnkle)),(2,(extremeHip[1],neutralAnkle))] #format: (choice,endpos) with endpos in degrees
     elif targetRad  >= math.pi/2 and targetRad < math.pi: #closest to leg 2
-        return [(0,(extremeHip[1],neutralAnkle)),(2,(extremeHip[0],neutralAnkle))]
+        return [(1,(extremeHip[0],neutralAnkle)),(3,(extremeHip[1],neutralAnkle))]
     elif targetRad >= math.pi and targetRad < 3*math.pi/2: #closest to leg 3
-        return [(1,(extremeHip[1],neutralAnkle)),(3,(extremeHip[0],neutralAnkle))]
+        return [(0,(extremeHip[1],neutralAnkle)),(2,(extremeHip[0],neutralAnkle))]
     else: #closest to leg 4 
-        return [(0,(extremeHip[0],neutralAnkle)),(2,(extremeHip[1],neutralAnkle))]
+        return [(1,(extremeHip[1],neutralAnkle)),(3,(extremeHip[0],neutralAnkle))]
     
 #print(numericSteps(targetAngle)) #debug
     

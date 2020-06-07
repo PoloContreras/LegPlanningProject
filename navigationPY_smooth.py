@@ -13,7 +13,7 @@ import cvxpy as cp
 import copy
 
 #ROBOT DIMENSIONS
-neutralAnkle = math.radians(40)
+neutralAnkle = math.radians(30)
 roboRadius = 0.2*math.sqrt(2) #radius of robot from geometric center to hip joint
 l1=0.2*math.sqrt(2) #length of first leg segment after hip joint
 l2=0.4*math.sqrt(2) #length of second seg segment (after ankle joint)
@@ -83,18 +83,36 @@ else:
     print('right')
 #print(path)
     
+#def nextTarget(i,path,botPosition,navRadius): #arguments are index in path vector, path vector, current location of bot (3d), radius of bot for navigation
+#    print('current location: ',botPosition[:2])
+#    print('vector to target: ',path[i]-botPosition[:2])
+#    print('distance to target: ',np.linalg.norm(path[i]-botPosition[:2]))
+#    if i >= len(path)-1: #we are using the goal location
+#        return len(path)-1 #use the goal location  
+#    path_subset = path[i:] #vector to hold future elements of the path
+#    #twoDist = math.inf #start at unreasonable value, to overwrite
+#    for step in range(len(path_subset)-1,-1,-1): #iterate backwards over next target positions
+#        twoDist = np.linalg.norm(path[step]-botPosition[:2])
+#        if twoDist <= navRadius: #closest upcoming point that is outside of the nav radius
+#            return min(i+step+1,len(path)-1)
+#    
+#    return i #no change in target index
+	
 def nextTarget(i,path,botPosition,navRadius): #arguments are index in path vector, path vector, current location of bot (3d), radius of bot for navigation
+    print('current location: ',botPosition[:2])
+    print('vector to target: ',path[i]-botPosition[:2])
+    print('distance to target: ',np.linalg.norm(path[i]-botPosition[:2]))
     if i >= len(path)-1: #we are using the goal location
         return (len(path)-1) #use the goal location
     elif np.linalg.norm(path[i]-botPosition[:2]) > navRadius: #next point already outside of nav radius
         return i
-    twoDist =0; #euclidean distance between 
+    twoDist =0; #euclidean distance between current location and potential next target location
     while twoDist <= navRadius:
-        twoDist = np.linalg.norm(botPosition[:2]-path[i])
+        twoDist = np.linalg.norm(path[i]-botPosition[:2])
         i += 1
-    return i
+    return min(i,len(path)-1)
 
-testTarget = nextTarget(0,path,[0,0,0],neutralRadiusTotal)
-
-print(testTarget)
-print(path[testTarget])
+#testTarget = nextTarget(0,path,[0,0,0],neutralRadiusTotal)
+#
+#print(testTarget)
+#print(path[testTarget])

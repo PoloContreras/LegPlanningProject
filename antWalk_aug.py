@@ -69,8 +69,8 @@ def numericWalk(phaseTimer,x,new_legs,avance):
         avance[2*choice_2] = 0
         avance[2*choice_1+1] += (tobillos[2*choice_1+1]-avance[2*choice_1+1])*(1-linearMotion(x,phaseTimer)) #ankles return
         avance[2*choice_2+1] += (tobillos[2*choice_2+1]-avance[2*choice_2+1])*(1-linearMotion(x,phaseTimer))    
-        if x == 250:
-            print('avance: ',(avance[2*choice_1+1]))
+#        if x == 250:
+#            print('avance: ',(avance[2*choice_1+1]))
 		
 #    inertiaMatrix = mj.data.qm
 #    print(inertiaMatrix)

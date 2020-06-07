@@ -34,7 +34,7 @@ GoalReached = False
 env.reset()
 env.render()
 
-local_target = 0 #pointer indicates location of target specified by nav.path
+target_index = 0 #pointer indicates location of target specified by nav.path
 
 theta_resting = np.array([[0,0,0,0],[math.radians(30),math.radians(30),math.radians(30),math.radians(30)]])
 
@@ -50,8 +50,12 @@ while(not GoalReached):
 	# Body frames with respect to the joint positions
 	body_frames = env.data.body_xmat
 	body_pos = env.data.body_xpos
-	local_target = nav.nextTarget(local_target,nav.path,body_pos[1],nav.neutralRadiusTotal)
+	target_index = nav.nextTarget(target_index,nav.path,body_pos[1],nav.neutralRadiusTotal)
+	print('target index: ',target_index)
+	local_target = np.r_[nav.path[target_index],[0]] #use lookup value to determine position of next target on surface
+	print('target position: ',local_target)
 	projPoint = legSelect.circularProjection(body_pos[1],legSelect.radius,local_target)
+	print('projected target: ',projPoint)
 	body_dir = body_frames[1].reshape(3,3)[:2,0]
 	angle_proj = legSelect.positionToAngle(body_pos[1],body_dir,projPoint)
 	new_legs = legSelect.numericSteps(angle_proj)
