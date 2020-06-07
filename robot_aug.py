@@ -447,7 +447,7 @@ while(not GoalReached):
 		env.step(paso_patas)
 
 
-
+print('CHECKMATE!!!')
 env.close()
 
 

@@ -107,7 +107,7 @@ def nextTarget(i,path,botPosition,navRadius): #arguments are index in path vecto
     elif np.linalg.norm(path[i]-botPosition[:2]) > navRadius: #next point already outside of nav radius
         return i
     twoDist =0; #euclidean distance between current location and potential next target location
-    while twoDist <= navRadius:
+    while (twoDist <= navRadius) and (i <= len(path)-1):
         twoDist = np.linalg.norm(path[i]-botPosition[:2])
         i += 1
     return min(i,len(path)-1)
