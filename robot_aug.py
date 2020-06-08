@@ -9,7 +9,7 @@ import numpy as np
 import modern_robotics as mr
 import math
 import cvxpy as cp
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 import gym
 from gym import envs
@@ -44,7 +44,9 @@ for i in range(200):
 	
 #save_legs = [(4,[0,0]),(4,[0,0])] #initialize to an impossible value
 saved_solutions = collections.defaultdict() #save previous solutions by the convex solver in here
-	   
+
+robot_path = [] # Create the array variable for the robot's path
+
 # We can literally put all of the following code in one big while loop
 while(not GoalReached):
 	# Body frames with respect to the joint positions
@@ -446,72 +448,26 @@ while(not GoalReached):
 		env.render()
 		env.step(paso_patas)
 
+	robot_path.append(body_pos[1][:2]) # append the current position to the array for plotting
 
 print('CHECKMATE!!!')
 env.close()
 
+fig = plt.figure()
+fig.suptitle('Desired Trajectory versus Path Taken')
+ax = fig.add_subplot(1, 1, 1)
 
-# Below is an educated guess on timings
-# timestep = 0.01 seconds per frame
-# total_frames = 5*(total_steps)
-# T = 10 seconds for when we're giving inputs
-# 5 frames per step
-# UNDER ASSUMPTION THAT EACH FRAME IS 0.01 SECONDS
-# 100 frames per second. 1000 frames per 10 seconds
-# 200 steps
-# N = 40 we will have 4 inputs per second (one every 25 frames)
+# Below plots the planned path versus path taken by robot
+plt.plot(nav.path[1, :], nav.path[2, :], label='Desired trajectory')
+plt.plot(robot_path[1, :], robot_path[2, :], label='Robot path')
+plt.xlabel('x position')
+plt.ylabel('y position')
 
+# Create the circles for the plot
+obstacles = [plt.Circle(nav.pObs[idx],nav.rObs[idx],color='gray') for idx in range(len(nav.pObs))]
 
-# print(theta)
-# print(i_count)
-# body_frames = env.data.body_xmat
-# body_pos = env.data.body_xpos
-# print("body_frames = ", body_frames)
-# print("body_pos = ", body_pos)
-def computeBodyRotation():
-	xAxis = np.array([1,0])
-	torsoVec = env.data.body_xmat[1].reshape(3, 3)[:2,0]
-	torsoVec /= np.linalg.norm(torsoVec)
-	sin_angle = xAxis[0] * torsoVec[1] - xAxis[1] * torsoVec[0]
-	angle = np.arccos(np.dot(xAxis, torsoVec))
+# Add all the circles to the plot
+for obstacle in obstacles:
+	ax.add_patch(obstacle)
 
-	if sin_angle >= 0:
-		rotation = angle
-	elif sin_angle < 0:
-		rotation = 2*math.pi-angle
-
-	return rotation #both vectors normalized
-
-rotation = computeBodyRotation()
-'''
-GoalReached = False
-while(not GoalReached):
-	for i in range(2000):
-		env.render()
-		# Each specific angle should be held for five steps to correspond
-		# with the time-frame
-		prev = 0
-		if i <=1000:
-			env.step([0, 30, 0, 30, 0, -30, 0, -30])
-		if i>1000 and i < 1000+5*N-1:
-			paso = [0, 30,  theta[0, (i-1000)//5], 30+theta[1, (i-1000)//5],0, -30, 0, -30]
-			if int((i - 1000) // 5)>prev+0.5:
-				prev = int((i - 1000)//5)
-				# print(paso)
-				k+=1
-				# print(prev)
-				# print(k)
-			env.step(paso)
-			continue
-		if i > 1000+5*N-1:
-			env.step([0, 30, theta[0, 40], 30+theta[1, 40], 0, -30, 0, -30])
-	# Compute location
-	rotation = computeBodyRotation()
-
-	# print("body_frames = ", body_frames)
-	# print("body_pos = ", body_pos)
-
-	# Check if goal done
-	GoalReached = True
-'''
-
+plt.show()
