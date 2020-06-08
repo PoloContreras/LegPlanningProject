@@ -45,7 +45,8 @@ for i in range(200):
 #save_legs = [(4,[0,0]),(4,[0,0])] #initialize to an impossible value
 saved_solutions = collections.defaultdict() #save previous solutions by the convex solver in here
 
-robot_path = [] # Create the array variable for the robot's path
+robot_path_x = [] # Create the array variable for the robot's path
+robot_path_y = []
 
 # We can literally put all of the following code in one big while loop
 while(not GoalReached):
@@ -448,7 +449,8 @@ while(not GoalReached):
 		env.render()
 		env.step(paso_patas)
 
-	robot_path.append(body_pos[1][:2]) # append the current position to the array for plotting
+	robot_path_x.append(body_pos[1][0]) # append the current position to the array for plotting
+	robot_path_y.append(body_pos[1][1])
 
 print('CHECKMATE!!!')
 env.close()
@@ -459,7 +461,7 @@ ax = fig.add_subplot(1, 1, 1)
 
 # Below plots the planned path versus path taken by robot
 plt.plot(nav.path[1, :], nav.path[2, :], label='Desired trajectory')
-plt.plot(robot_path[1, :], robot_path[2, :], label='Robot path')
+plt.plot(robot_path_x, robot_path_y, label='Robot path')
 plt.xlabel('x position')
 plt.ylabel('y position')
 
