@@ -460,7 +460,9 @@ fig.suptitle('Desired Trajectory versus Path Taken')
 ax = fig.add_subplot(1, 1, 1)
 
 # Below plots the planned path versus path taken by robot
-plt.plot(nav.path[1, :], nav.path[2, :], label='Desired trajectory')
+desired_traj_x = [point[0] for point in nav.path]
+desired_traj_y = [point[1] for point in nav.path]
+plt.plot(desired_traj_x,desired_traj_y, label='Desired trajectory')
 plt.plot(robot_path_x, robot_path_y, label='Robot path')
 plt.xlabel('x position')
 plt.ylabel('y position')
