@@ -1,3 +1,5 @@
+![Ant Agent](and_and_goal2.jpg)
+
 # Convex Heuristics for Limb Placement
 One of the contemporary challenges in robotic locomotion is the efficient calculation of the movements necessary both for limb collocation and navigation, such that the agent can react to its environment and effectively maneuver to a target location with minimal or no guidance from a human operator. 
 
@@ -32,4 +34,15 @@ https://medium.com/@sayanmndl21/install-openai-gym-with-box2d-and-mujoco-in-wind
 To launch the main simulation execute the following command:
 ```
 python robot_aug.py
+```
+While the mujoco simulation runs, the command window will display relevant information:
+```
+target index:  112
+target position:  [26.08877727  8.18931233  0.        ]
+projected target:  [25.67988874  8.16393076]
+unit vector [0.99807893 0.06195528]
+angle:  5.325275457486673  degrees
+current location:  [24.49713697  8.24159236]
+vector to target:  [ 1.5916403  -0.05228003]
+distance to target:  1.592498684850419
 ```
