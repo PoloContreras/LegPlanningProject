@@ -442,7 +442,7 @@ while(not GoalReached):
 					print('Objective value is: ', torque_sum)
 					fig = plt.figure()
 					ax1 = fig.add_subplot(413)
-					plt.rc('text', usetex=True)
+#					plt.rc('text', usetex=True)
 					ax1.title.set_text('Joint Angles versus Time (Post-CVX Solve)')
 
 					#plt.plot(theta_plot[0, :], label=r'\theta_1')
@@ -465,7 +465,7 @@ while(not GoalReached):
 					plt.ylabel('Time (0.25 seconds)')
 
 					ax1 = fig.add_subplot(411)
-					plt.rc('text', usetex=True)
+#					plt.rc('text', usetex=True)
 					ax1.title.set_text('Joint Angles versus Time (Pre-CVX Solve)')
 
 					plt.plot(theta_first[0, :], label='theta_1')
