@@ -1,4 +1,4 @@
-![Ant Agent](and_and_goal2.jpg)
+![Ant Agent](https://github.com/PoloContreras/LegPlanningProject/blob/master/Ant_Moving_To_Target.jpg)
 
 # Convex Heuristics for Limb Placement
 One of the contemporary challenges in robotic locomotion is the efficient calculation of the movements necessary both for limb collocation and navigation, such that the agent can react to its environment and effectively maneuver to a target location with minimal or no guidance from a human operator. 
