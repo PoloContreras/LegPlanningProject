@@ -19,6 +19,8 @@ https://github.com/openai/mujoco-py
 ### OpenAI Gym
 https://gym.openai.com/docs/#installation
 
+**Note: after installing gym, replace the ant.xml located at <Your-Path>/gym/envs/mujoco/assets with the ant.xml included in this repo.**
+
 ### Modern-Robotics
 https://github.com/NxRLab/ModernRobotics/tree/master/packages/Python
 
@@ -46,3 +48,14 @@ current location:  [24.49713697  8.24159236]
 vector to target:  [ 1.5916403  -0.05228003]
 distance to target:  1.592498684850419
 ```
+
+## Description of Key Files:
+**robot_aug.py**
+The main python file which launches and updates the simulation environment
+**navigationPY_smooth.py**
+Generates the data to read for the navigation
+**legHardSelector_aug**
+Functions for choosing the next leg for movement
+**antWalk_aug**
+Functions for handling the ant walking
+
