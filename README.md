@@ -52,10 +52,14 @@ distance to target:  1.592498684850419
 ## Description of Key Files:
 **robot_aug.py**
 The main python file which launches and updates the simulation environment
+
 **navigationPY_smooth.py**
 Generates the data to read for the navigation
+
 **legHardSelector_aug**
 Functions for choosing the next leg for movement
+
 **antWalk_aug**
 Functions for handling the ant walking
+
 
