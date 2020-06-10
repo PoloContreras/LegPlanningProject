@@ -56,10 +56,10 @@ The main python file which launches and updates the simulation environment
 **navigationPY_aug.py**
 Generates the data to read for the navigation
 
-**legHardSelector_aug**
+**legHardSelector_aug.py**
 Functions for choosing the next leg for movement
 
-**antWalk_aug**
+**antWalk_aug.py**
 Functions for handling the ant walking
 
 
